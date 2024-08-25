@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function BfhlForm() {
     const [input, setInput] = useState('');
     const [response, setResponse] = useState(null);
     const [selectedOptions, setSelectedOptions] = useState([]);
-    
+
+    // Set the page title when the component mounts
+    useEffect(() => {
+        document.title = "21BIT0662";
+    }, []);
+
     const handleSubmit = async () => {
         setResponse(null);  // Clear previous response
 
@@ -14,7 +19,7 @@ function BfhlForm() {
             const jsonData = JSON.parse(input);
 
             // Send the parsed JSON to the server
-            const res = await axios.post('https://bajajproject.onrender.com/bfhl', jsonData);
+            const res = await axios.post('https://krishbajaj.onrender.com/bfhl', jsonData);
             console.log("Response received:", res.data);  // Debugging line
 
             setResponse(res.data);
@@ -31,6 +36,13 @@ function BfhlForm() {
     const handleOptionChange = (e) => {
         const value = Array.from(e.target.selectedOptions, option => option.value);
         setSelectedOptions(value);
+    };
+
+    const formatResponseAsString = (response, selectedOptions) => {
+        return selectedOptions
+            .filter(option => response[option] && response[option].length > 0)
+            .map(option => `${option}: ${response[option].join(', ')}`)
+            .join('\n');
     };
 
     return (
@@ -55,19 +67,7 @@ function BfhlForm() {
             <h3>Filtered Response</h3>
             <div id="responseContainer">
                 {response && selectedOptions.length > 0 ? (
-                    <pre>
-                        {JSON.stringify(
-                            selectedOptions.reduce((acc, option) => {
-                                // Ensure the selected option exists in the response and is non-empty
-                                if (response[option] && response[option].length > 0) {
-                                    acc[option] = response[option];
-                                }
-                                return acc;
-                            }, {}),
-                            null,
-                            2
-                        )}
-                    </pre>
+                    <pre>{formatResponseAsString(response, selectedOptions)}</pre>
                 ) : (
                     <p>No filters selected or no matching data found.</p>
                 )}
