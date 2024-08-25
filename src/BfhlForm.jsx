@@ -7,15 +7,24 @@ function BfhlForm() {
     const [selectedOptions, setSelectedOptions] = useState([]);
     
     const handleSubmit = async () => {
-        // Clear the previous response
-        setResponse(null);
+        setResponse(null);  // Clear previous response
 
         try {
-            const res = await axios.post('https://bajajproject.onrender.com/bfhl', JSON.parse(input));
+            // Parse the JSON input
+            const jsonData = JSON.parse(input);
+
+            // Send the parsed JSON to the server
+            const res = await axios.post('https://bajajproject.onrender.com/bfhl', jsonData);
+            console.log("Response received:", res.data);  // Debugging line
+
             setResponse(res.data);
         } catch (error) {
-            alert('Invalid JSON or API Error');
-            console.error(error);
+            if (error instanceof SyntaxError) {
+                alert('Invalid JSON format: ' + error.message);
+            } else {
+                alert('API Error: ' + error.message);
+            }
+            console.error("Error:", error);  // Debugging line
         }
     };
 
@@ -32,7 +41,7 @@ function BfhlForm() {
                 id="jsonInput" 
                 value={input} 
                 onChange={(e) => setInput(e.target.value)} 
-                placeholder='Enter JSON here... Example: { "data": ["A","C","z"] }'
+                placeholder='Enter JSON here... Example: { "data": ["A","C","Z","c","i"] }'
             />
             <button onClick={handleSubmit}>Submit</button>
 
@@ -45,11 +54,22 @@ function BfhlForm() {
 
             <h3>Filtered Response</h3>
             <div id="responseContainer">
-                {response && (
-                    <pre>{JSON.stringify(selectedOptions.reduce((acc, option) => {
-                        acc[option] = response[option];
-                        return acc;
-                    }, {}), null, 2)}</pre>
+                {response && selectedOptions.length > 0 ? (
+                    <pre>
+                        {JSON.stringify(
+                            selectedOptions.reduce((acc, option) => {
+                                // Ensure the selected option exists in the response and is non-empty
+                                if (response[option] && response[option].length > 0) {
+                                    acc[option] = response[option];
+                                }
+                                return acc;
+                            }, {}),
+                            null,
+                            2
+                        )}
+                    </pre>
+                ) : (
+                    <p>No filters selected or no matching data found.</p>
                 )}
             </div>
         </div>
